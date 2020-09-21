@@ -81,7 +81,7 @@ class MetaDataDownloadConfig(Object):
     local_waveforms_only = Bool.T(default=False)
     sds_structure = Bool.T(default=False)
     use_downmeta = Bool.T(default=True)
-    channels_download = String.T()
+    channels_download = List.T(String.T())
     all_channels = Bool.T(default=False)
     # components = List.T()
     token = Dict.T(default={})
