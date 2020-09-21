@@ -54,7 +54,7 @@ def generate_default_config():
     metaDataconf = MetaDataDownloadConfig(
         download_data=False,
         download_metadata=False,
-        channels_download='HH*',
+        channels_download=['HH*'],
         #local_metadata=[],
         use_downmeta=False,
         token={'geofon': os.path.join(os.path.expanduser('~'), '.eidatoken')},

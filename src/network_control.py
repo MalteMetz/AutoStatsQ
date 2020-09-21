@@ -622,10 +622,10 @@ def main():
                             continue
                         #else:
                         #    print(glob.glob(mseed_fn_st+'*'))
-                        
+
                         selection = [(ns_now[0], ns_now[1], '*',
-                                      metaDataconf.channels_download,
-                                      t_start, t_end)]
+                                      c, t_start, t_end)
+                                     for c in metaDataconf.channels_download]
                         logs.debug(selection)
 
                         for site in sites:
@@ -843,7 +843,20 @@ def main():
 
                                 for tr in trs:
                                     cnt_resp = 0
-                                    tr.downsample_to(0.1)
+                                    deltat = 0.1
+
+                                    try:
+                                        tr.downsample_to(deltat)
+                                    except util.UnavailableDecimation:
+                                        logs.info(
+                                            'Downsampling to 0.1 s not possible for trace %s with '
+                                            'deltat = %f s' % ('.'.join(tr.nslc_id), tr.deltat))
+
+                                        ratio = deltat / tr.deltat
+                                        deltat = num.around(ratio) * tr.deltat
+
+                                        tr.downsample_to(deltat)
+
                                     for resp_now in responses:
                                         try:
                                             polezero_resp = resp_now.get_pyrocko_response(
@@ -1042,7 +1055,9 @@ def main():
                                                         save_rot_down_tr(tr1, dir_rot, ev_t_str)
 
                                                     except trace.NoData:
-                                                        logs.error('N/2 comp no data in twd %s' % nsl)
+                                                        logs.error(
+                                                            'N/2 comp no data in twd %s' %
+                                                            '.'.join(nsl))
                                                         tr1 = None
                                                     except ValueError:
                                                         tr1 = None
@@ -1067,7 +1082,9 @@ def main():
                                                         save_rot_down_tr(tr2, dir_rot, ev_t_str)
 
                                                     except trace.NoData:
-                                                        logs.error('E/3 comp no data in twd %s' % nsl)
+                                                        logs.error(
+                                                            'E/3 comp no data in twd %s' %
+                                                            '.'.join(nsl))
                                                         tr2 = None
                                                     except ValueError:
                                                         tr2 = None
@@ -1088,7 +1105,9 @@ def main():
                                                 save_rot_down_tr(trZ, dir_rot, ev_t_str)
 
                                             except trace.NoData:
-                                                logs.error('E/3 comp no data in twd %s' % nsl)
+                                                logs.error(
+                                                    'E/3 comp no data in twd %s' %
+                                                    '.'.join(nsl))
                                             except ValueError:
                                                 trZ = None
                                                 logs.error('Z downsampling not successful')
