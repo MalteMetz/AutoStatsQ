@@ -893,6 +893,11 @@ def main():
                                       continue
 
                                     for tr in trs:
+                                        if tr.deltat > 0.1:
+                                            logs.warning(
+                                                'Trace %s has bad sampling deltat of %f s' % ('.'.join(tr.nslc_id), tr.deltat))
+                                            continue
+
                                         tr.downsample_to(0.1)
                                         cnt_resp = 0
                                         for resp_now in responses:
@@ -903,11 +908,15 @@ def main():
                                                     fake_input_units='M'
                                                     )
 
-                                                restituted = tr.transfer(
-                                                    tfade=transf_taper,
-                                                    freqlimits=RestDownconf.freqlim,
-                                                    transfer_function=polezero_resp,
-                                                    invert=True)
+                                                try:
+                                                    restituted = tr.transfer(
+                                                        tfade=transf_taper,
+                                                        freqlimits=RestDownconf.freqlim,
+                                                        transfer_function=polezero_resp,
+                                                        invert=True)
+                                                except trace.TraceTooShort as e:
+                                                    logs.warn(e)
+                                                    continue
 
                                                 fname = '%s_%s_%s__%s_%srest2.mseed' % \
                                                         (tr.nslc_id[0], tr.nslc_id[1],
@@ -1518,8 +1527,11 @@ def main():
             else:
                 stations = all_stations
 
-            tshifts = num.empty((len(stations), len(subset_catalog)))
-            tshifts.fill(num.nan)
+            # tshifts = num.empty((len(stations), len(subset_catalog)))
+            # tshifts.fill(num.nan)
+
+            tshifts = num.zeros((len(stations), len(subset_catalog)))
+            tshifts[:, :] = num.nan
 
             for i_ev, ev in enumerate(subset_catalog):
                 tshifts[:, i_ev] = tt.ccs_allstats_one_event(i_ev, ev, stations, all_stations,
